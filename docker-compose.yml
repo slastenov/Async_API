@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  elastic:
+    image: elasticsearch:7.7.0
+    environment:
+      - cluster.name=movies-elasticsearch-cluster
+      - network.host=0.0.0.0
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/
+    ports:
+      - "9200:9200"
+
+  redis:
+    image: redis:6.2.6-alpine
+    ports:
+      - "6379:6379"
+
+
+volumes:
+  elasticsearch_data:
