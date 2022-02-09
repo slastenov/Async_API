@@ -22,6 +22,14 @@ services:
     ports:
       - "6379:6379"
 
+  movies_api:
+    build: .
+    depends_on:
+      - redis
+      - elastic
+
+
+
 
 volumes:
   elasticsearch_data:
