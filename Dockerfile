@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD  cd src && uvicorn main:app --host 0.0.0.0
+CMD  python src/main.py
