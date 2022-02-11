@@ -72,7 +72,7 @@ class MoviesETLProcessor(ETLProcessor):
         "genre": ("genre_film_work", "genre_id"),
         "person": ("person_film_work", "person_id"),
     }
-    state_file = "film_state.json"
+    state_file = "state/film_state.json"
 
     def extract_related_ids(self, table: str, column: str, related_ids: tuple) -> list:
         """Извлечение идентификаторов через связующую таблицу."""

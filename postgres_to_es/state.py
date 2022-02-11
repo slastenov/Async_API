@@ -18,7 +18,7 @@ class BaseStorage:
 
 class JsonFileStorage(BaseStorage):
     def __init__(self, file_path: Optional[str] = None):
-        self.file_path = file_path or 'state.json'
+        self.file_path = file_path or "state/state.json"
 
     def save_state(self, state: dict) -> None:
         """Сохранить состояние в постоянное хранилище"""
@@ -31,6 +31,7 @@ class JsonFileStorage(BaseStorage):
         """Загрузить состояние локально из постоянного хранилища"""
         try:
             file = Path(self.file_path)
+            file.parent.mkdir(parents=True, exist_ok=True)
             file.touch(exist_ok=True)
             with open(self.file_path, "r") as fp:
                 return json.load(fp)

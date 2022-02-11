@@ -43,7 +43,7 @@ services:
      env_file:
        - .env
      volumes:
-       - etl_data:/srv/www/postgres_elastic/
+       - etl_data:/srv/www/postgres_elastic/state
      depends_on:
        - db
        - elastic
