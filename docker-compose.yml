@@ -34,9 +34,12 @@ services:
 
   db:
     image: postgres:13
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    restart: always
 
   etl:
      build: ./postgres_to_es
