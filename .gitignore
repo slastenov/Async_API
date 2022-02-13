@@ -38,7 +38,7 @@ coverage.xml
 .hypothesis/
 
 # dotenv
-postgres_to_es/.env
+.env
 
 # virtualenv
 venv/
