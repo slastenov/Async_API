@@ -23,7 +23,7 @@ class GenreService:
             genre = await self._get_genre_from_elastic(genre_id)
             if not genre:
                 return None
-            await self._put_film_to_cache(genre)
+            await self._put_genre_to_cache(genre)
 
         return genre
 
@@ -41,10 +41,10 @@ class GenreService:
         if not data:
             return None
 
-        film = Genre.parse_raw(data)
-        return film
+        genre = Genre.parse_raw(data)
+        return genre
 
-    async def _put_film_to_cache(self, genre: Genre):
+    async def _put_genre_to_cache(self, genre: Genre):
         await self.redis.set(genre.id, genre.json(), expire=GENRE_CACHE_EXPIRE_IN_SECONDS)
 
 
