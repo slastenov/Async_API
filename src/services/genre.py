@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, List
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
@@ -27,8 +27,13 @@ class GenreService:
 
         return genre
 
+    async def get_list(self) -> Optional[List[Genre]]:
+        resp = await self.elastic.search(index='genres', size=500, query={"match_all": {}})
+        genres = [Genre(**doc['_source']) for doc in resp['hits']['hits']]
+        return genres
+
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
-        doc = await self.elastic.get("genres", genre_id)
+        doc = await self.elastic.get(index="genres", id=genre_id)
         return Genre(**doc["_source"])
 
     async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:

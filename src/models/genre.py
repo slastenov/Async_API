@@ -1,7 +1,9 @@
+from typing import Optional
+
 from .base import BaseApiModel
 
 
 class Genre(BaseApiModel):
     id: str
     name: str
-    description: str
+    description: Optional[str] = ""
