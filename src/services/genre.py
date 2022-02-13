@@ -28,7 +28,7 @@ class GenreService:
         return genre
 
     async def get_list(self) -> Optional[List[Genre]]:
-        resp = await self.elastic.search(index='genres', size=500, query={"match_all": {}})
+        resp = await self.elastic.search(index='genres', size=500)
         genres = [Genre(**doc['_source']) for doc in resp['hits']['hits']]
         return genres
 
