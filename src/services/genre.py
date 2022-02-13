@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Optional, List
 
 from aioredis import Redis
-from elasticsearch import AsyncElasticsearch
+from elasticsearch import AsyncElasticsearch, exceptions
 from fastapi import Depends
 
 from db.elastic import get_elastic
@@ -33,7 +33,10 @@ class GenreService:
         return genres
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
-        doc = await self.elastic.get(index="genres", id=genre_id)
+        try:
+            doc = await self.elastic.get(index="genres", id=genre_id)
+        except exceptions.NotFoundError:
+            return
         return Genre(**doc["_source"])
 
     async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
