@@ -103,10 +103,10 @@ class GenresETLProcessor(ETLProcessor):
         pass
 
     def extract_all_data(self, ids: tuple) -> Generator:
-        """Извлечение данных о кинолентах по кортежу с id."""
+        """Извлечение данных о жанрах по кортежу с id."""
         query = format_query_for_all_genres()
         return self.extractor.execute_query_generator(query, ids)
 
     def transform_data(self, data: list) -> list:
-        """Изменение данных под схему movies"""
+        """Изменение данных под схему genres"""
         return transform_data(data)
