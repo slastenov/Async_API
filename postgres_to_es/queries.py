@@ -44,3 +44,17 @@ def format_sql_for_all_filmworks():
      group by fw.id
      order by fw.id;"""
     return all_filmworks
+
+
+def format_query_for_all_genres():
+    genres = """
+    select 
+        g.id as _id,
+        g.id,
+        g.name,
+        g.description
+    from genre g
+    where g.id in %s
+    order by g.id;
+    """
+    return genres

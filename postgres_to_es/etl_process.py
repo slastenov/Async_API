@@ -3,8 +3,8 @@ import logging
 from datetime import datetime
 from typing import Generator
 
-from queries import format_sql_for_related_filmwork, format_sql_for_all_filmworks
-from transformer import get_ids_list, transform_movies
+from queries import format_sql_for_related_filmwork, format_sql_for_all_filmworks, format_query_for_all_genres
+from transformer import get_ids_list, transform_data
 from ps_extractor import PostgresExtractor
 from state import State, JsonFileStorage
 
@@ -86,4 +86,27 @@ class MoviesETLProcessor(ETLProcessor):
 
     def transform_data(self, data: list) -> list:
         """Изменение данных под схему movies"""
-        return transform_movies(data)
+        return transform_data(data)
+
+
+class GenresETLProcessor(ETLProcessor):
+    """Конкретный класс для заполнения данных по схеме genres"""
+    index_name = "genres"
+    index_scheme = "index_genre.json"
+    tables = {
+        "genre": None,
+    }
+    state_file = "state/genre_state.json"
+
+    def extract_related_ids(self, table: str, column: str, related_ids: tuple) -> None:
+        """Извлечение идентификаторов через связующую таблицу. Не используется."""
+        pass
+
+    def extract_all_data(self, ids: tuple) -> Generator:
+        """Извлечение данных о кинолентах по кортежу с id."""
+        query = format_query_for_all_genres()
+        return self.extractor.execute_query_generator(query, ids)
+
+    def transform_data(self, data: list) -> list:
+        """Изменение данных под схему movies"""
+        return transform_data(data)
