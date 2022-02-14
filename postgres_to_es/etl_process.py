@@ -3,10 +3,12 @@ import logging
 from datetime import datetime
 from typing import Generator
 
-from queries import format_sql_for_related_filmwork, format_sql_for_all_filmworks
-from transformer import get_ids_list, transform_movies
 from ps_extractor import PostgresExtractor
-from state import State, JsonFileStorage
+from queries import (format_sql_for_all_filmworks, format_sql_for_all_persons,
+                     format_sql_for_related_filmwork,
+                     format_sql_for_related_person)
+from state import JsonFileStorage, State
+from transformer import get_ids_list, transform_data
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,7 @@ class ETLProcessor(abc.ABC):
     Абстрактный класс для построения ETL процесса.
     Класс-наследник строится под каждую схему.
     """
+
     index_scheme: str
     index_name: str
     tables: dict
@@ -28,8 +31,9 @@ class ETLProcessor(abc.ABC):
 
     def process(self):
         """Метод для переноса данных."""
+        logger.info('Checking available indexes')
         self.es.create_index(self.index_name, self.index_scheme)
-
+        logger.info('Grabbing data')
         for table, related in self.tables.items():
             last_date = self.state_storage.get_state(table) or datetime.min
 
@@ -43,7 +47,9 @@ class ETLProcessor(abc.ABC):
                     transformed_data = self.transform_data(data)
                     self.es.load_es_data(transformed_data, self.index_name)
 
-            self.state_storage.set_state(table, datetime.now().strftime("%Y-%m-%d, %H:%M:%S"))
+            self.state_storage.set_state(
+                table, datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
+            )
             logger.info("New data added from table %s", table)
         logger.info("New data added to index %s", self.index_name)
 
@@ -64,9 +70,10 @@ class ETLProcessor(abc.ABC):
 
 
 class MoviesETLProcessor(ETLProcessor):
-    """Конкретный класс для заполнения данных по схеме movies"""
+    """Конкретный класс для заполнения данных по схеме movies."""
+
     index_name = "movies"
-    index_scheme = "index.json"
+    index_scheme = f"es_indexes/{index_name}.json"
     tables = {
         "film_work": None,
         "genre": ("genre_film_work", "genre_id"),
@@ -86,4 +93,30 @@ class MoviesETLProcessor(ETLProcessor):
 
     def transform_data(self, data: list) -> list:
         """Изменение данных под схему movies"""
-        return transform_movies(data)
+        return transform_data(data)
+
+
+class PersonETLProcessor(ETLProcessor):
+    """Конкретный класс для заполнения данных по схеме person."""
+
+    index_name = "person"
+    index_scheme = f"es_indexes/{index_name}.json"
+    tables = {
+        "person": None,
+        "film_work": ("person_film_work", "person_id"),
+    }
+    state_file = "state/person_state.json"
+
+    def extract_related_ids(self, table: str, column: str, related_ids: tuple) -> list:
+        """Извлечение идентификаторов через связующую таблицу."""
+        query = format_sql_for_related_person(table, column)
+        return self.extractor.execute_query(query, related_ids)
+
+    def extract_all_data(self, ids: tuple) -> Generator:
+        """Извлечение данных о персонах по кортежу с id."""
+        query = format_sql_for_all_persons()
+        return self.extractor.execute_query_generator(query, ids)
+
+    def transform_data(self, data: list) -> list:
+        """Изменение данных под схему person."""
+        return transform_data(data)
