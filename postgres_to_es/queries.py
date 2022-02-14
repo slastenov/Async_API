@@ -33,7 +33,7 @@ def format_sql_for_all_filmworks():
         fw.title,
         fw.description,
         fw.rating as imdb_rating,
-        array_agg(distinct p.full_name) filter (where pfw.role = 'director') as director,
+        array_agg(distinct p.full_name) filter (where pfw.role = 'director') as directors_names,
         array_agg(distinct p.full_name) filter (where pfw.role = 'actor') as actors_names,
         array_agg(distinct p.full_name) filter (where pfw.role = 'writer') as writers_names,
         json_agg(distinct jsonb_build_object('id', p.id, 'name', p.full_name)) 
