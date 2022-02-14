@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 from services.film import FilmService, get_film_service
 
+from models.base import Page
+
 router = APIRouter()
 
 
@@ -43,3 +45,14 @@ async def film_details(
                       directors=film.director,
                       genre=film.genre,
                       )
+
+
+@router.get(path='/search/', response_model=Page[Film])
+async def film_search(
+        query: str,
+        page: int,
+        size: int,
+        film_service: FilmService = Depends(get_film_service),
+) -> Page[Film]:
+    page = await film_service.search(query, page, size)
+    return page

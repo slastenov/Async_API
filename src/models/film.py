@@ -16,3 +16,9 @@ class Film(BaseApiModel):
     genre: List[str]
     genres: List[Dict]
 
+
+class FilmPerson(BaseApiModel):
+    uuid: str
+    title: str
+    role: str
+    imdb_rating: float

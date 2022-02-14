@@ -33,9 +33,9 @@ class ETLProcessor(abc.ABC):
 
     def process(self):
         """Метод для переноса данных."""
-        logger.info('Checking available indexes')
+        logger.info("Checking available indexes")
         self.es.create_index(self.index_name, self.index_scheme)
-        logger.info('Grabbing data')
+        logger.info("Grabbing data")
         for table, related in self.tables.items():
             last_date = self.state_storage.get_state(table) or datetime.min
 

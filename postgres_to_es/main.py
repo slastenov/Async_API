@@ -1,11 +1,12 @@
 import logging
 
 import psycopg2
-from psycopg2.extras import DictCursor
-
 from config import ElasticSearchSettings, PostgresSettings
 from es_loader import ElasticSearchLoader
+
+from psycopg2.extras import DictCursor
 from etl_process import MoviesETLProcessor, PersonETLProcessor, GenresETLProcessor
+
 
 logger = logging.getLogger(__name__)
 
