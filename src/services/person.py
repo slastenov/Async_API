@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional, List
+from typing import List, Optional
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, exceptions
@@ -28,8 +28,8 @@ class PersonService:
         return person
 
     async def get_list(self) -> Optional[List[Person]]:
-        resp = await self.elastic.search(index='person', size=500)
-        persons = [Person(**doc['_source']) for doc in resp['hits']['hits']]
+        resp = await self.elastic.search(index="person", size=500)
+        persons = [Person(**doc["_source"]) for doc in resp["hits"]["hits"]]
         return persons
 
     async def _get_person_from_elastic(self, person_id: str) -> Optional[Person]:
@@ -48,7 +48,9 @@ class PersonService:
         return person
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(person.uuid, person.json(), expire=GENRE_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(
+            person.uuid, person.json(), expire=GENRE_CACHE_EXPIRE_IN_SECONDS
+        )
 
 
 @lru_cache()

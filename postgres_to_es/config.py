@@ -1,8 +1,8 @@
 import logging
 
+from dotenv import load_dotenv
 from pydantic import BaseSettings, Field
 from pydantic.env_settings import SettingsSourceCallable
-from dotenv import load_dotenv
 
 load_dotenv()
 

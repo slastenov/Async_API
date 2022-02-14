@@ -12,4 +12,3 @@ class FilmPerson(BaseApiModel):
     title: str
     role: str
     imdb_rating: float
-
