@@ -54,5 +54,8 @@ doc.html
 # db
 postgres_data/
 
+# state
+postgres_to_es/state/
+
 # DS_Store
 .DS_Store
