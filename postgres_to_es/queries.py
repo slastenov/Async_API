@@ -33,14 +33,15 @@ def format_sql_for_all_filmworks():
         fw.title,
         fw.description,
         fw.rating as imdb_rating,
-        array_agg(distinct p.full_name ) filter ( where pfw.role = 'director' ) as director,
-        array_agg(distinct p.full_name) filter ( where pfw.role = 'actor' ) as actors_names,
-        array_agg(distinct p.full_name) filter ( where pfw.role = 'writer' ) as writers_names,
+        array_agg(distinct p.full_name) filter (where pfw.role = 'director') as director,
+        array_agg(distinct p.full_name) filter (where pfw.role = 'actor') as actors_names,
+        array_agg(distinct p.full_name) filter (where pfw.role = 'writer') as writers_names,
         json_agg(distinct jsonb_build_object('id', p.id, 'name', p.full_name)) 
-            filter ( where pfw.role = 'actor' ) as actors,
+            filter (where pfw.role = 'actor') as actors,
         json_agg(distinct jsonb_build_object('id', p.id, 'name', p.full_name)) 
-            filter ( where pfw.role = 'writer' ) as writers,
-        array_agg(distinct g.name ) as genre
+            filter (where pfw.role = 'writer') as writers,
+        array_agg(distinct g.name) as genre,
+        json_agg(distinct jsonb_build_object('id', g.id, 'name', g.name)) as genres
     from film_work fw 
         left join person_film_work pfw on pfw.film_work_id = fw.id
         left join person p on p.id = pfw.person_id
@@ -92,3 +93,17 @@ def format_sql_for_all_persons():
      order by p.id;
     """
     return all_persons
+
+
+def format_sql_for_all_genres():
+    genres = """
+    select 
+        g.id as _id,
+        g.id,
+        g.name,
+        g.description
+    from genre g
+    where g.id in %s
+    order by g.id;
+    """
+    return genres
