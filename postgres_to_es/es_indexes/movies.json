@@ -81,6 +81,10 @@
         "type": "text",
         "analyzer": "ru_en"
       },
+      "directors_names": {
+        "type": "text",
+        "analyzer": "ru_en"
+      },
       "actors_names": {
         "type": "text",
         "analyzer": "ru_en"
