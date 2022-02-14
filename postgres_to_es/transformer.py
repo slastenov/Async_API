@@ -3,7 +3,7 @@ def get_ids_list(data: list) -> tuple:
     return tuple(column[0] for column in data)
 
 
-def transform_movies(movies: list) -> list:
-    """Подготовка кинопроизведений для записи в ES после получения из БД."""
-    transformed_data = [dict(movie) for movie in movies]
+def transform_data(data: list) -> list:
+    """Подготовка данных для записи в ES после получения из БД, если не требуется каких-либо манипуляций данных с БД."""
+    transformed_data = [dict(d) for d in data]
     return transformed_data

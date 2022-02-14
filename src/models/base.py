@@ -1,5 +1,6 @@
-import orjson
 from pydantic import BaseModel
+
+import orjson
 
 
 def orjson_dumps(v, *, default):
@@ -8,6 +9,7 @@ def orjson_dumps(v, *, default):
 
 class BaseApiModel(BaseModel):
     """Базовый класс для моделей API."""
+
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
