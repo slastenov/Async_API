@@ -103,7 +103,7 @@ class PersonETLProcessor(ETLProcessor):
     index_scheme = f"es_indexes/{index_name}.json"
     tables = {
         "person": None,
-        "film_work": ("person_film_work", "person_id"),
+        "film_work": ("person_film_work", "film_work_id"),
     }
     state_file = "state/person_state.json"
 
