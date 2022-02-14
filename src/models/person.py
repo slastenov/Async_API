@@ -1,11 +1,10 @@
 from typing import List
 
 from .base import BaseApiModel
-from .film import Film
+from .film import FilmPerson
 
 
 class Person(BaseApiModel):
-    id: str
+    uuid: str
     full_name: str
-    roles: List[str] = []
-    films: List[Film] = []
+    films: List[FilmPerson] = []

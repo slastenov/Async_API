@@ -3,7 +3,6 @@ from typing import Generator
 import backoff
 import psycopg2
 from psycopg2.extensions import connection as _connection
-
 from queries import format_sql_for_ids
 
 

@@ -1,6 +1,5 @@
-from pydantic import BaseModel
-
 import orjson
+from pydantic import BaseModel
 
 
 def orjson_dumps(v, *, default):
