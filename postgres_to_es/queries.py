@@ -40,6 +40,8 @@ def format_sql_for_all_filmworks():
             filter (where pfw.role = 'actor') as actors,
         json_agg(distinct jsonb_build_object('id', p.id, 'name', p.full_name)) 
             filter (where pfw.role = 'writer') as writers,
+        json_agg(distinct jsonb_build_object('id', p.id, 'name', p.full_name)) 
+            filter (where pfw.role = 'director') as directors,
         array_agg(distinct g.name) as genre,
         json_agg(distinct jsonb_build_object('id', g.id, 'name', g.name)) as genres
     from film_work fw 
