@@ -3,9 +3,9 @@ import logging
 import psycopg2
 from psycopg2.extras import DictCursor
 
-from config import PostgresSettings, ElasticSearchSettings
+from config import ElasticSearchSettings, PostgresSettings
 from es_loader import ElasticSearchLoader
-from etl_process import MoviesETLProcessor, GenresETLProcessor
+from etl_process import MoviesETLProcessor, PersonETLProcessor, GenresETLProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +20,11 @@ def etl():
     with psycopg2.connect(**ps_conn.dict(), cursor_factory=DictCursor) as pg_conn:
         etl_movies = MoviesETLProcessor(es, pg_conn)
         etl_movies.process()
+        etl_persons = PersonETLProcessor(es, pg_conn)
+        etl_persons.process()
         etl_genres = GenresETLProcessor(es, pg_conn)
         etl_genres.process()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     etl()

@@ -5,4 +5,3 @@ class Film(BaseApiModel):
     id: str
     title: str
     description: str
-

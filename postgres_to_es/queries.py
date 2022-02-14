@@ -3,17 +3,24 @@ from psycopg2 import sql
 
 def format_sql_for_ids(table_name: str):
     """Запрос для получения id новых записей."""
-    query = sql.SQL("select id from {table} where updated_at >= %s order by updated_at;") \
-        .format(table=sql.Identifier(table_name))
+    query = sql.SQL(
+        "select id from {table} where updated_at >= %s order by updated_at;"
+    ).format(table=sql.Identifier(table_name))
     return query
 
 
 def format_sql_for_related_filmwork(table_name: str, column_name: str):
     """Запрос для получения id кинопроизведений из связанных таблиц."""
-    related_filmwork_ids = sql.SQL("""select fw.id from film_work fw 
-    left join {table} on {table}.film_work_id = fw.id 
-    where {column} in %s order by fw.updated_at;""") \
-        .format(table=sql.Identifier(table_name), column=sql.Identifier(table_name, column_name))
+    related_filmwork_ids = sql.SQL(
+        """
+        select fw.id 
+        from film_work fw 
+        left join {table} on {table}.film_work_id = fw.id 
+        where {column} in %s order by fw.updated_at;
+        """
+    ).format(
+        table=sql.Identifier(table_name), column=sql.Identifier(table_name, column_name)
+    )
     return related_filmwork_ids
 
 
@@ -44,6 +51,48 @@ def format_sql_for_all_filmworks():
      group by fw.id
      order by fw.id;"""
     return all_filmworks
+
+
+def format_sql_for_related_person(table_name: str, column_name: str):
+    """Запрос для получения id персон из связанных таблиц."""
+    related_person_ids = sql.SQL(
+        """
+        select distinct {column}
+        from film_work fw
+        left join {table} on {table}.film_work_id = fw.id 
+        where fw.id in %s;
+        """
+    ).format(
+        table=sql.Identifier(table_name), column=sql.Identifier(table_name, column_name)
+    )
+    return related_person_ids
+
+
+def format_sql_for_all_persons():
+    """Запрос для получения данных кинопроизведений."""
+    all_persons = """
+    select 
+            p.id _id,
+            p.id uuid,
+            p.full_name,
+            json_agg(
+                jsonb_build_object(
+                    'uuid', fw.id, 
+                    'title', fw.title, 
+                    'imdb_rating', fw.rating,
+                    'role', pfw.role
+                )
+            ) films
+    from person p
+        left join person_film_work pfw on pfw.person_id = p.id
+        left join film_work fw on fw.id = pfw.film_work_id 
+     where p.id in %s
+     group by 
+            p.id
+        ,   p.full_name
+     order by p.id;
+    """
+    return all_persons
 
 
 def format_query_for_all_genres():
