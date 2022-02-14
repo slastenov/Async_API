@@ -95,7 +95,7 @@ def format_sql_for_all_persons():
     return all_persons
 
 
-def format_query_for_all_genres():
+def format_sql_for_all_genres():
     genres = """
     select 
         g.id as _id,

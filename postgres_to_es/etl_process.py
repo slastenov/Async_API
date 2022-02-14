@@ -5,7 +5,7 @@ from typing import Generator
 
 from ps_extractor import PostgresExtractor
 from queries import (format_sql_for_all_filmworks,
-                     format_query_for_all_genres,
+                     format_sql_for_all_genres,
                      format_sql_for_all_persons,
                      format_sql_for_related_filmwork,
                      format_sql_for_related_person)
@@ -21,7 +21,6 @@ class ETLProcessor(abc.ABC):
     Класс-наследник строится под каждую схему.
     """
 
-    index_scheme: str
     index_name: str
     tables: dict
     state_file: str
@@ -30,6 +29,7 @@ class ETLProcessor(abc.ABC):
         self.es = es
         self.extractor = PostgresExtractor(pg_connection)
         self.state_storage = State(JsonFileStorage(self.state_file))
+        self.index_scheme = f"es_indexes/{self.index_name}.json"
 
     def process(self):
         """Метод для переноса данных."""
@@ -75,7 +75,6 @@ class MoviesETLProcessor(ETLProcessor):
     """Конкретный класс для заполнения данных по схеме movies."""
 
     index_name = "movies"
-    index_scheme = f"es_indexes/{index_name}.json"
     tables = {
         "film_work": None,
         "genre": ("genre_film_work", "genre_id"),
@@ -102,7 +101,6 @@ class PersonETLProcessor(ETLProcessor):
     """Конкретный класс для заполнения данных по схеме person."""
 
     index_name = "person"
-    index_scheme = f"es_indexes/{index_name}.json"
     tables = {
         "person": None,
         "film_work": ("person_film_work", "film_work_id"),
@@ -127,7 +125,6 @@ class PersonETLProcessor(ETLProcessor):
 class GenresETLProcessor(ETLProcessor):
     """Конкретный класс для заполнения данных по схеме genres"""
     index_name = "genres"
-    index_scheme = "index_genre.json"
     tables = {
         "genre": None,
     }
@@ -139,7 +136,7 @@ class GenresETLProcessor(ETLProcessor):
 
     def extract_all_data(self, ids: tuple) -> Generator:
         """Извлечение данных о жанрах по кортежу с id."""
-        query = format_query_for_all_genres()
+        query = format_sql_for_all_genres()
         return self.extractor.execute_query_generator(query, ids)
 
     def transform_data(self, data: list) -> list:
