@@ -4,7 +4,9 @@ from datetime import datetime
 from typing import Generator
 
 from ps_extractor import PostgresExtractor
-from queries import (format_sql_for_all_filmworks, format_sql_for_all_persons,
+from queries import (format_sql_for_all_filmworks,
+                     format_sql_for_all_genres,
+                     format_sql_for_all_persons,
                      format_sql_for_related_filmwork,
                      format_sql_for_related_person)
 from state import JsonFileStorage, State
@@ -19,7 +21,6 @@ class ETLProcessor(abc.ABC):
     Класс-наследник строится под каждую схему.
     """
 
-    index_scheme: str
     index_name: str
     tables: dict
     state_file: str
@@ -28,6 +29,7 @@ class ETLProcessor(abc.ABC):
         self.es = es
         self.extractor = PostgresExtractor(pg_connection)
         self.state_storage = State(JsonFileStorage(self.state_file))
+        self.index_scheme = f"es_indexes/{self.index_name}.json"
 
     def process(self):
         """Метод для переноса данных."""
@@ -73,7 +75,6 @@ class MoviesETLProcessor(ETLProcessor):
     """Конкретный класс для заполнения данных по схеме movies."""
 
     index_name = "movies"
-    index_scheme = f"es_indexes/{index_name}.json"
     tables = {
         "film_work": None,
         "genre": ("genre_film_work", "genre_id"),
@@ -100,10 +101,9 @@ class PersonETLProcessor(ETLProcessor):
     """Конкретный класс для заполнения данных по схеме person."""
 
     index_name = "person"
-    index_scheme = f"es_indexes/{index_name}.json"
     tables = {
         "person": None,
-        "film_work": ("person_film_work", "person_id"),
+        "film_work": ("person_film_work", "film_work_id"),
     }
     state_file = "state/person_state.json"
 
@@ -119,4 +119,26 @@ class PersonETLProcessor(ETLProcessor):
 
     def transform_data(self, data: list) -> list:
         """Изменение данных под схему person."""
+        return transform_data(data)
+
+
+class GenresETLProcessor(ETLProcessor):
+    """Конкретный класс для заполнения данных по схеме genres"""
+    index_name = "genres"
+    tables = {
+        "genre": None,
+    }
+    state_file = "state/genre_state.json"
+
+    def extract_related_ids(self, table: str, column: str, related_ids: tuple) -> None:
+        """Извлечение идентификаторов через связующую таблицу. Не используется."""
+        pass
+
+    def extract_all_data(self, ids: tuple) -> Generator:
+        """Извлечение данных о жанрах по кортежу с id."""
+        query = format_sql_for_all_genres()
+        return self.extractor.execute_query_generator(query, ids)
+
+    def transform_data(self, data: list) -> list:
+        """Изменение данных под схему genres"""
         return transform_data(data)

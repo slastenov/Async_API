@@ -4,6 +4,6 @@ def get_ids_list(data: list) -> tuple:
 
 
 def transform_data(data: list) -> list:
-    """Подготовка данных для записи в ES после получения из БД, если не требуется каких-либо манипуляций данных с БД."""
+    """Подготовка данных для записи в ES после получения из БД, если не требуется каких-либо манипуляций данных."""
     transformed_data = [dict(d) for d in data]
     return transformed_data

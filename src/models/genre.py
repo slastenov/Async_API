@@ -1,11 +1,9 @@
-from typing import List
+from typing import Optional
 
 from .base import BaseApiModel
-from .film import Film
 
 
-class GenreDetailed(BaseApiModel):
+class Genre(BaseApiModel):
     id: str
     name: str
-    description: str
-    films: List[Film] = []
+    description: Optional[str] = ""
