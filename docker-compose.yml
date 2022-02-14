@@ -28,6 +28,8 @@ services:
       - '8000:8000'
     env_file:
       - .env
+    volumes:
+      - ./src:/srv/www/movies/src
     depends_on:
       - redis
       - elastic

@@ -7,6 +7,7 @@ from fastapi import Depends
 
 from db.elastic import get_elastic
 from db.redis import get_redis
+from models.base import Page
 from models.film import Film
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
@@ -31,6 +32,36 @@ class FilmService:
             await self._put_film_to_cache(film)
 
         return film
+
+    async def search(self, query: str, page: int, size: int) -> Page[Film]:
+        result = await self._search_film_from_elastic(query, page, size)
+        return result
+
+    async def _search_film_from_elastic(self, query: str, page: int, size: int) -> Page[Film]:
+        body = """
+            {
+                "query": {
+                    "multi_match": {
+                        "query": "%s",
+                        "fields": [
+                            "title^3",
+                            "description"
+                        ],
+                        "operator": "and",
+                        "fuzziness": "AUTO"
+                    }
+                },
+                "from": %s,
+                "size": %s
+            }
+        """ % (query, (page - 1) * size, size)
+        doc = await self.elastic.search(index="movies", body=body)
+        return Page(
+            items=[Film(**film['_source']) for film in doc["hits"]["hits"]],
+            page=page,
+            size=size,
+            total=doc['hits']['total']['value'],
+        )
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         doc = await self.elastic.get("movies", film_id)
@@ -57,7 +88,7 @@ class FilmService:
 
 @lru_cache()
 def get_film_service(
-    redis: Redis = Depends(get_redis),
-    elastic: AsyncElasticsearch = Depends(get_elastic),
+        redis: Redis = Depends(get_redis),
+        elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> FilmService:
     return FilmService(redis, elastic)
