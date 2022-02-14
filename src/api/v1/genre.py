@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 class Genre(BaseModel):
-    id: str
+    uuid: str
     name: str
 
 
@@ -22,7 +22,7 @@ async def genre_details(
     genre = await genre_service.get_by_id(genre_id)
     if not genre:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="genre not found")
-    return Genre(id=genre.id, name=genre.name)
+    return Genre(uuid=genre.id, name=genre.name)
 
 
 @router.get('/')
@@ -30,5 +30,5 @@ async def genre_list(genre_service: GenreService = Depends(get_genre_service)) -
     genres = await genre_service.get_list()
     if not genres:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='genre not found')
-    genres_list = [Genre(id=genre.id, name=genre.name) for genre in genres]
+    genres_list = [Genre(uuid=genre.id, name=genre.name) for genre in genres]
     return genres_list
