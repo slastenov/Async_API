@@ -32,7 +32,7 @@ async def person_details(
 
 
 @router.get("/{person_id}/film", response_model=PersonFilms)
-async def person_details(
+async def person_film_details(
     person_id: str, person_service: PersonService = Depends(get_person_service)
 ) -> PersonFilms:
     person = await person_service.get_by_id(person_id)
