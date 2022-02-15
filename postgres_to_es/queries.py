@@ -71,7 +71,7 @@ def format_sql_for_related_person(table_name: str, column_name: str):
 
 
 def format_sql_for_all_persons():
-    """Запрос для получения данных кинопроизведений."""
+    """Запрос для получения данных персон."""
     all_persons = """
     select 
             p.id _id,
@@ -98,6 +98,7 @@ def format_sql_for_all_persons():
 
 
 def format_sql_for_all_genres():
+    """Запрос для получения списка жанров."""
     genres = """
     select 
         g.id as _id,
