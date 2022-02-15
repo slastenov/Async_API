@@ -28,34 +28,74 @@ class FilmService:
 
         return film
 
+    async def get_list(self, sort: str, page_size: int, page_number: int, filter_genre: str) -> Page[Film]:
+        result = await self._get_list_from_elastic(sort, page_number, page_size, filter_genre)
+        return result
+
     async def search(self, query: str, page: int, size: int) -> Page[Film]:
         result = await self._search_film_from_elastic(query, page, size)
         return result
 
-    async def _search_film_from_elastic(self, query: str, page: int, size: int) -> Page[Film]:
-        body = """
-            {
-                "query": {
-                    "multi_match": {
-                        "query": "%s",
-                        "fields": [
-                            "title^3",
-                            "description"
-                        ],
-                        "operator": "and",
-                        "fuzziness": "AUTO"
-                    }
-                },
-                "from": %s,
-                "size": %s
+    async def _get_list_from_elastic(self, sort, page, size, filter_genre) -> Page[Film]:
+        order = "asc"
+        if sort.startswith("-"):
+            order = "desc"
+            sort = sort[1:]
+
+        body = {
+            "sort": {
+                sort: {
+                    "order": order
+                }
             }
-        """ % (query, (page - 1) * size, size)
+        }
+
+        if filter_genre:
+            body["query"] = {
+                "bool": {
+                    "filter": {
+                        "nested": {
+                            "path": "genres",
+                            "query": {
+                                "bool": {
+                                    "filter": {
+                                        "term": {"genres.id": filter_genre}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        return await self._get_pages_from_elastic(body, page, size)
+
+    async def _search_film_from_elastic(self, query: str, page: int, size: int) -> Page[Film]:
+        body = {
+            "query": {
+                "multi_match": {
+                    "query": query,
+                    "fields": [
+                        "title^3",
+                        "description"
+                    ],
+                    "operator": "and",
+                    "fuzziness": "AUTO"
+                }
+            }
+        }
+        return await self._get_pages_from_elastic(body, page, size)
+
+    async def _get_pages_from_elastic(self, body, page, size) -> Page[Film]:
+        body["from"] = (page - 1) * size
+        body["size"] = size
+
         doc = await self.elastic.search(index="movies", body=body)
+
         return Page(
-            items=[Film(**film['_source']) for film in doc["hits"]["hits"]],
+            items=[Film(**film["_source"]) for film in doc["hits"]["hits"]],
             page=page,
             size=size,
-            total=doc['hits']['total']['value'],
+            total=doc["hits"]["total"]["value"],
         )
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
