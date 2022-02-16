@@ -6,7 +6,7 @@ from elasticsearch import AsyncElasticsearch, exceptions
 from fastapi import Depends
 
 from db.elastic import get_elastic
-from db.redis import get_redis
+from db.redis import get_redis, async_cache
 from models.person import Person
 
 GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 60  # 1 час
@@ -17,14 +17,9 @@ class PersonService:
         self.redis = redis
         self.elastic = elastic
 
+    @async_cache(Person, page=False, ttl=GENRE_CACHE_EXPIRE_IN_SECONDS)
     async def get_by_id(self, person_id: str) -> Optional[Person]:
-        person = await self._person_from_cache(person_id)
-        if not person:
-            person = await self._get_person_from_elastic(person_id)
-            if not person:
-                return None
-            await self._put_person_to_cache(person)
-
+        person = await self._get_person_from_elastic(person_id)
         return person
 
     async def get_list(self) -> Optional[List[Person]]:
@@ -38,19 +33,6 @@ class PersonService:
         except exceptions.NotFoundError:
             return
         return Person(**doc["_source"])
-
-    async def _person_from_cache(self, person_id: str) -> Optional[Person]:
-        data = await self.redis.get(person_id)
-        if not data:
-            return None
-
-        person = Person.parse_raw(data)
-        return person
-
-    async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(
-            person.uuid, person.json(), expire=GENRE_CACHE_EXPIRE_IN_SECONDS
-        )
 
 
 @lru_cache()

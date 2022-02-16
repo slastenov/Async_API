@@ -1,9 +1,9 @@
 from http import HTTPStatus
-from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from models.page import Page
 from services.genre import GenreService, get_genre_service
 
 router = APIRouter()
@@ -26,9 +26,13 @@ async def genre_details(
 
 
 @router.get('/')
-async def genre_list(genre_service: GenreService = Depends(get_genre_service)) -> List[Genre]:
-    genres = await genre_service.get_list()
-    if not genres:
+async def genre_list(
+        page_size: int = Query(50, alias="page[size]", ge=1),
+        page_number: int = Query(1, alias="page[number]", ge=1),
+        genre_service: GenreService = Depends(get_genre_service),
+) -> Page[Genre]:
+    genres = await genre_service.get_list(page_size, page_number)
+    if not genres.items:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='genre not found')
-    genres_list = [Genre(uuid=genre.id, name=genre.name) for genre in genres]
-    return genres_list
+    genres.items = [Genre(uuid=genre.id, name=genre.name) for genre in genres.items]
+    return genres

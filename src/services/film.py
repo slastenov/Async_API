@@ -6,8 +6,8 @@ from elasticsearch import AsyncElasticsearch, exceptions
 from fastapi import Depends
 
 from db.elastic import get_elastic
-from db.redis import get_redis
-from models.base import Page
+from db.redis import get_redis, async_cache
+from models.page import Page
 from models.film import Film
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
@@ -18,25 +18,22 @@ class FilmService:
         self.redis = redis
         self.elastic = elastic
 
+    @async_cache(Film, page=False, ttl=FILM_CACHE_EXPIRE_IN_SECONDS)
     async def get_by_id(self, film_id: str) -> Optional[Film]:
-        film = await self._film_from_cache(film_id)
-        if not film:
-            film = await self._get_film_from_elastic(film_id)
-            if not film:
-                return None
-            await self._put_film_to_cache(film)
-
+        film = await self._get_film_from_elastic(film_id)
         return film
 
+    @async_cache(Film, page=True, ttl=FILM_CACHE_EXPIRE_IN_SECONDS)
     async def get_list(self, sort: str, page_size: int, page_number: int, filter_genre: str) -> Page[Film]:
         result = await self._get_list_from_elastic(sort, page_number, page_size, filter_genre)
         return result
 
-    async def search(self, query: str, page: int, size: int) -> Page[Film]:
-        result = await self._search_film_from_elastic(query, page, size)
+    @async_cache(Film, page=True, ttl=FILM_CACHE_EXPIRE_IN_SECONDS)
+    async def search(self, query: str, page_number: int, page_size: int) -> Page[Film]:
+        result = await self._search_film_from_elastic(query, page_number, page_size)
         return result
 
-    async def _get_list_from_elastic(self, sort, page, size, filter_genre) -> Page[Film]:
+    async def _get_list_from_elastic(self, sort, page_number, page_size, filter_genre) -> Page[Film]:
         order = "asc"
         if sort.startswith("-"):
             order = "desc"
@@ -67,9 +64,9 @@ class FilmService:
                     }
                 }
             }
-        return await self._get_pages_from_elastic(body, page, size)
+        return await self._get_pages_from_elastic(body, page_number, page_size)
 
-    async def _search_film_from_elastic(self, query: str, page: int, size: int) -> Page[Film]:
+    async def _search_film_from_elastic(self, query: str, page_number: int, page_size: int) -> Page[Film]:
         body = {
             "query": {
                 "multi_match": {
@@ -83,18 +80,18 @@ class FilmService:
                 }
             }
         }
-        return await self._get_pages_from_elastic(body, page, size)
+        return await self._get_pages_from_elastic(body, page_number, page_size)
 
-    async def _get_pages_from_elastic(self, body, page, size) -> Page[Film]:
-        body["from"] = (page - 1) * size
-        body["size"] = size
+    async def _get_pages_from_elastic(self, body, page_number, page_size) -> Page[Film]:
+        body["from"] = (page_number - 1) * page_size
+        body["size"] = page_size
 
         doc = await self.elastic.search(index="movies", body=body)
 
         return Page(
             items=[Film(**film["_source"]) for film in doc["hits"]["hits"]],
-            page=page,
-            size=size,
+            page_number=page_number,
+            page_size=page_size,
             total=doc["hits"]["total"]["value"],
         )
 
@@ -104,17 +101,6 @@ class FilmService:
         except exceptions.NotFoundError:
             return
         return Film(**doc["_source"])
-
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
-        if not data:
-            return None
-
-        film = Film.parse_raw(data)
-        return film
-
-    async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(film.id, film.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()

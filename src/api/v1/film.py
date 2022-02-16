@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from services.film import FilmService, get_film_service
 
-from models.base import Page
+from models.page import Page
 
 router = APIRouter()
 
