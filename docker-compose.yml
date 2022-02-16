@@ -58,6 +58,18 @@ services:
        - db
        - elastic
 
+  nginx:
+    image: nginx:1.21.5
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/site.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/static/
+    depends_on:
+      - movies_api
+    ports:
+      - "80:80"
+
 volumes:
   elasticsearch_data:
   etl_data:
+  static_volume:
