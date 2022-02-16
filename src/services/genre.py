@@ -1,12 +1,13 @@
 from functools import lru_cache
-from typing import Optional, List
+from typing import Optional
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, exceptions
 from fastapi import Depends
 
 from db.elastic import get_elastic
-from db.redis import get_redis
+from db.redis import get_redis, async_cache
+from models.page import Page
 from models.genre import Genre
 
 GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 60  # 1 час
@@ -17,20 +18,20 @@ class GenreService:
         self.redis = redis
         self.elastic = elastic
 
+    @async_cache(Genre, False, GENRE_CACHE_EXPIRE_IN_SECONDS)
     async def get_by_id(self, genre_id: str) -> Optional[Genre]:
-        genre = await self._genre_from_cache(genre_id)
-        if not genre:
-            genre = await self._get_genre_from_elastic(genre_id)
-            if not genre:
-                return None
-            await self._put_genre_to_cache(genre)
-
+        genre = await self._get_genre_from_elastic(genre_id)
         return genre
 
-    async def get_list(self) -> Optional[List[Genre]]:
-        resp = await self.elastic.search(index='genres', size=500)
-        genres = [Genre(**doc['_source']) for doc in resp['hits']['hits']]
-        return genres
+    @async_cache(Genre, True, GENRE_CACHE_EXPIRE_IN_SECONDS)
+    async def get_list(self, page_size: int, page_number: int) -> Page:
+        doc = await self.elastic.search(index='genres', size=page_size, from_=(page_number - 1) * page_size)
+        return Page(
+            items=[Genre(**d['_source']) for d in doc['hits']['hits']],
+            page_number=page_number,
+            page_size=page_size,
+            total=doc["hits"]["total"]["value"],
+        )
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
         try:
@@ -38,17 +39,6 @@ class GenreService:
         except exceptions.NotFoundError:
             return
         return Genre(**doc["_source"])
-
-    async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
-        data = await self.redis.get(genre_id)
-        if not data:
-            return None
-
-        genre = Genre.parse_raw(data)
-        return genre
-
-    async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(genre.id, genre.json(), expire=GENRE_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()
