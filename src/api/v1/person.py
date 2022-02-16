@@ -1,9 +1,10 @@
 from http import HTTPStatus
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from models.page import Page
 from models.person import FilmPerson
 from services.person import PersonService, get_person_service
 
@@ -42,12 +43,14 @@ async def person_film_details(
     return person.dict()
 
 
-@router.get("/")
-async def person_list(
-    person_service: PersonService = Depends(get_person_service),
-) -> List[Person]:
-    persons = await person_service.get_list()
-    if not persons:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+@router.get(path='/search/', response_model=Page[Person])
+async def film_search(
+        query: str,
+        page_number: int = Query(1, alias="page[number]", ge=1),
+        page_size: int = Query(50, alias="page[size]", ge=1),
+        person_service: PersonService = Depends(get_person_service),
+) -> Page[Person]:
+    page = await person_service.search(query, page_size, page_number)
+    page.items = [Person(uuid=person.uuid, full_name=person.full_name, films=person.films) for person in page.items]
 
-    return [Person(**person.dict()) for person in persons]
+    return page
