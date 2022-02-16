@@ -3,10 +3,9 @@ import logging
 import psycopg2
 from config import ElasticSearchSettings, PostgresSettings
 from es_loader import ElasticSearchLoader
-
+from etl_process import (GenresETLProcessor, MoviesETLProcessor,
+                         PersonETLProcessor)
 from psycopg2.extras import DictCursor
-from etl_process import MoviesETLProcessor, PersonETLProcessor, GenresETLProcessor
-
 
 logger = logging.getLogger(__name__)
 

@@ -43,14 +43,17 @@ async def person_film_details(
     return person.dict()
 
 
-@router.get(path='/search/', response_model=Page[Person])
+@router.get(path="/search/", response_model=Page[Person])
 async def film_search(
-        query: str,
-        page_number: int = Query(1, alias="page[number]", ge=1),
-        page_size: int = Query(50, alias="page[size]", ge=1),
-        person_service: PersonService = Depends(get_person_service),
+    query: str,
+    page_number: int = Query(1, alias="page[number]", ge=1),
+    page_size: int = Query(50, alias="page[size]", ge=1),
+    person_service: PersonService = Depends(get_person_service),
 ) -> Page[Person]:
     page = await person_service.search(query, page_size, page_number)
-    page.items = [Person(uuid=person.uuid, full_name=person.full_name, films=person.films) for person in page.items]
+    page.items = [
+        Person(uuid=person.uuid, full_name=person.full_name, films=person.films)
+        for person in page.items
+    ]
 
     return page

@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, List
+from typing import Generic, List, TypeVar
 
 from pydantic import Field
 
@@ -11,14 +11,20 @@ class Page(BaseApiModel, Generic[ElasticModel]):
     """Страница результатов с пагинацией."""
 
     items: List[ElasticModel] = Field(
-        default=[], title="List of objects",
+        default=[],
+        title="List of objects",
     )
     page_number: int = Field(
-        title="Page number", default=1, example=1,
+        title="Page number",
+        default=1,
+        example=1,
     )
     page_size: int = Field(
-        title="Amount of items on page", default=20, example=20,
+        title="Amount of items on page",
+        default=20,
+        example=20,
     )
     total: int = Field(
-        title='Total items', example=35,
+        title="Total items",
+        example=35,
     )

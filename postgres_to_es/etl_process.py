@@ -4,8 +4,7 @@ from datetime import datetime
 from typing import Generator
 
 from ps_extractor import PostgresExtractor
-from queries import (format_sql_for_all_filmworks,
-                     format_sql_for_all_genres,
+from queries import (format_sql_for_all_filmworks, format_sql_for_all_genres,
                      format_sql_for_all_persons,
                      format_sql_for_related_filmwork,
                      format_sql_for_related_person)
@@ -124,6 +123,7 @@ class PersonETLProcessor(ETLProcessor):
 
 class GenresETLProcessor(ETLProcessor):
     """Конкретный класс для заполнения данных по схеме genres"""
+
     index_name = "genres"
     tables = {
         "genre": None,
