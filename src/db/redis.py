@@ -1,11 +1,10 @@
 from functools import wraps
-from typing import Optional, Type, Callable
+from typing import Callable, Optional, Type
 
 from aioredis import Redis
 
 from models.base import BaseApiModel
 from models.page import Page
-
 
 redis: Optional[Redis] = None
 
@@ -14,7 +13,9 @@ async def get_redis() -> Redis:
     return redis
 
 
-def async_cache(model: Type[BaseApiModel] = None, page: bool = False, ttl: int = 60) -> Callable:
+def async_cache(
+    model: Type[BaseApiModel] = None, page: bool = False, ttl: int = 60
+) -> Callable:
     def _cache(fn):
         @wraps(fn)
         async def _wrapper(*args, **kwargs):

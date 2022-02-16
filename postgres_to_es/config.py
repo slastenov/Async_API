@@ -1,11 +1,7 @@
 import logging
 
-from dotenv import load_dotenv
 from pydantic import BaseSettings, Field
 from pydantic.env_settings import SettingsSourceCallable
-
-load_dotenv()
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()

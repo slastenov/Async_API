@@ -6,9 +6,9 @@ from elasticsearch import AsyncElasticsearch, exceptions
 from fastapi import Depends
 
 from db.elastic import get_elastic
-from db.redis import get_redis, async_cache
-from models.page import Page
+from db.redis import async_cache, get_redis
 from models.genre import Genre
+from models.page import Page
 
 GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 60  # 1 час
 
@@ -25,9 +25,11 @@ class GenreService:
 
     @async_cache(Genre, True, GENRE_CACHE_EXPIRE_IN_SECONDS)
     async def get_list(self, page_size: int, page_number: int) -> Page:
-        doc = await self.elastic.search(index='genres', size=page_size, from_=(page_number - 1) * page_size)
+        doc = await self.elastic.search(
+            index="genres", size=page_size, from_=(page_number - 1) * page_size
+        )
         return Page(
-            items=[Genre(**d['_source']) for d in doc['hits']['hits']],
+            items=[Genre(**d["_source"]) for d in doc["hits"]["hits"]],
             page_number=page_number,
             page_size=page_size,
             total=doc["hits"]["total"]["value"],
