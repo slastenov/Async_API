@@ -23,3 +23,22 @@ class FilmPerson(BaseApiModel):
     title: str
     role: str
     imdb_rating: float
+
+
+class ResponseFilm(BaseApiModel):
+    uuid: str
+    title: str
+    imdb_rating: float
+
+
+class ResponseFilmDetail(BaseApiModel):
+    uuid: str
+    title: str
+    imdb_rating: float
+    description: Optional[str] = ""
+    genre: Optional[List[dict]] = []
+    actors: Optional[List[dict]] = []
+    writers: Optional[List[dict]] = []
+    directors: Optional[List[dict]] = []
+
+

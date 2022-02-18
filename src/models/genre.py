@@ -7,3 +7,9 @@ class Genre(BaseApiModel):
     id: str
     name: str
     description: Optional[str] = ""
+
+
+class ResponseGenre(BaseApiModel):
+    uuid: str
+    name: str
+
