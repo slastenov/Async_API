@@ -2,9 +2,9 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from models.page import Page
-from models.genre import ResponseGenre
 from models.constants import GENRE_NOT_FOUND
+from models.genre import ResponseGenre
+from models.page import Page
 from services.genre import GenreService, get_genre_service
 
 router = APIRouter()
@@ -29,5 +29,7 @@ async def genre_list(
     genres = await genre_service.get_list(page_size, page_number)
     if not genres.items:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=GENRE_NOT_FOUND)
-    genres.items = [ResponseGenre(uuid=genre.id, name=genre.name) for genre in genres.items]
+    genres.items = [
+        ResponseGenre(uuid=genre.id, name=genre.name) for genre in genres.items
+    ]
     return genres

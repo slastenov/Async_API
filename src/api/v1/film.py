@@ -3,9 +3,9 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from models.page import Page
-from models.film import ResponseFilm, ResponseFilmDetail
 from models.constants import FILM_NOT_FOUND
+from models.film import ResponseFilm, ResponseFilmDetail
+from models.page import Page
 from services.film import FilmService, get_film_service
 
 router = APIRouter()

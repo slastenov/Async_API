@@ -12,4 +12,3 @@ class Genre(BaseApiModel):
 class ResponseGenre(BaseApiModel):
     uuid: str
     name: str
-

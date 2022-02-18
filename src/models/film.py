@@ -40,5 +40,3 @@ class ResponseFilmDetail(BaseApiModel):
     actors: Optional[List[dict]] = []
     writers: Optional[List[dict]] = []
     directors: Optional[List[dict]] = []
-
-

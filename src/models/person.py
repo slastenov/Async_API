@@ -18,6 +18,3 @@ class ResponsePerson(BaseApiModel):
 
 class ResponsePersonFilms(BaseApiModel):
     films: List[FilmPerson] = []
-
-
-
