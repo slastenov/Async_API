@@ -1,58 +1,48 @@
 from http import HTTPStatus
-from typing import List
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
 
+from models.constants import PERSON_NOT_FOUND
 from models.page import Page
-from models.person import FilmPerson
+from models.person import ResponsePerson, ResponsePersonFilms
 from services.person import PersonService, get_person_service
 
 router = APIRouter()
 
 
-class Person(BaseModel):
-    uuid: str
-    full_name: str
-    films: List[FilmPerson] = []
-
-
-class PersonFilms(BaseModel):
-    films: List[FilmPerson] = []
-
-
-@router.get("/{person_id}", response_model=Person)
+@router.get("/{person_id}", response_model=ResponsePerson)
 async def person_details(
     person_id: str, person_service: PersonService = Depends(get_person_service)
-) -> Person:
+) -> ResponsePerson:
     person = await person_service.get_by_id(person_id)
     if not person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=PERSON_NOT_FOUND)
 
-    return Person(**person.dict())
+    return ResponsePerson(**person.dict())
 
 
-@router.get("/{person_id}/film", response_model=PersonFilms)
+@router.get("/{person_id}/film", response_model=ResponsePersonFilms)
 async def person_film_details(
     person_id: str, person_service: PersonService = Depends(get_person_service)
-) -> PersonFilms:
+) -> Dict[str, Any]:
     person = await person_service.get_by_id(person_id)
     if not person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=PERSON_NOT_FOUND)
 
     return person.dict()
 
 
-@router.get(path="/search/", response_model=Page[Person])
+@router.get(path="/search/", response_model=Page[ResponsePerson])
 async def film_search(
     query: str,
     page_number: int = Query(1, alias="page[number]", ge=1),
     page_size: int = Query(50, alias="page[size]", ge=1),
     person_service: PersonService = Depends(get_person_service),
-) -> Page[Person]:
+) -> Page[ResponsePerson]:
     page = await person_service.search(query, page_size, page_number)
     page.items = [
-        Person(uuid=person.uuid, full_name=person.full_name, films=person.films)
+        ResponsePerson(uuid=person.uuid, full_name=person.full_name, films=person.films)
         for person in page.items
     ]
 
