@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD  python src/main.py
+CMD  ["gunicorn", "--chdir", "src/", "src.main:app", "--bind", "0.0.0.0:8000", "-k", "uvicorn.workers.UvicornWorker"]
